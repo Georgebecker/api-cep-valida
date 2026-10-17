@@ -1,6 +1,11 @@
 const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
-const HISTORY_KEY = "cepvalida.history.v1";
 const MAX_HISTORY = 8;
+
+try {
+  localStorage.removeItem("cepvalida.history.v1");
+} catch {
+  /* localStorage indisponível */
+}
 
 const TYPES = {
   cpf: {
@@ -43,7 +48,7 @@ const TYPES = {
 const state = {
   type: "cpf",
   lastResult: null,
-  history: loadHistory(),
+  history: [],
 };
 
 const elements = {
@@ -61,24 +66,6 @@ const elements = {
   historyList: document.querySelector("#history-list"),
   clearHistory: document.querySelector("#clear-history"),
 };
-
-function loadHistory() {
-  try {
-    const raw = localStorage.getItem(HISTORY_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.slice(0, MAX_HISTORY) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory() {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
-  } catch {
-    /* armazenamento indisponível: o histórico vale só para esta página */
-  }
-}
 
 function setApiStatus(mode, label) {
   elements.status.classList.remove("status-online", "status-offline", "status-checking");
@@ -256,7 +243,6 @@ function addHistory(body) {
     at: Date.now(),
   });
   state.history = state.history.slice(0, MAX_HISTORY);
-  saveHistory();
   renderHistory();
 }
 
@@ -396,7 +382,6 @@ elements.form.addEventListener("submit", validate);
 elements.copy.addEventListener("click", copyLastResult);
 elements.clearHistory.addEventListener("click", () => {
   state.history = [];
-  saveHistory();
   renderHistory();
 });
 
