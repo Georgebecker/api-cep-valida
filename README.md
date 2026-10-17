@@ -97,6 +97,7 @@ api-cep-valida/
 ├── src/
 │   ├── main.py              # aplicação FastAPI e rotas
 │   ├── schemas.py           # modelos Pydantic de entrada e saída
+│   ├── middleware.py        # rate limiting por cliente
 │   ├── services/viacep.py   # consulta externa com retry e fallback
 │   └── validators/          # CPF, CNPJ, CEP, UF e PIS/PASEP
 ├── tests/                   # suíte pytest (inclui teste da classificação)
@@ -111,6 +112,8 @@ api-cep-valida/
 ```
 
 ## Como rodar
+
+Requisitos: **Python 3.11+** e Git. Docker é opcional.
 
 ```powershell
 python -m venv .venv
@@ -165,6 +168,8 @@ fica em memória de cada processo — reiniciar o servidor zera o histórico e m
 instâncias não compartilham o limite.
 
 Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
+As variáveis são lidas do ambiente do processo: o `.env.example` documenta os nomes e, se você
+usar um `.env`, carregue-o no shell/IDE (o projeto não depende de `python-dotenv`).
 
 ## Segurança e privacidade
 
