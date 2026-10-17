@@ -85,16 +85,27 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
   `request.client.host` (não confia em `X-Forwarded-For` sem proxy confiável), `/health`
   fica isento, o estado é por processo e `reset()` existe para testes.
 
-## Ideias futuras (não implementadas no MVP)
+## Verificação final
 
-- Consulta de CEP em lote.
-- Suporte a PIS/PASEP — implementado no loop de melhoria.
-- Cache de respostas do ViaCEP — implementado no loop de melhoria.
-- Rate limiting — implementado no loop de melhoria.
-- Autenticação por chave de API para uso público.
-- Métricas Prometheus e tracing.
+- Suíte completa: **138 testes verdes**.
+- Servidor Uvicorn: `/health`, `/docs`, frontend e todos os endpoints exercitados com HTTP real.
+- Fallback do ViaCEP exercitado com base inacessível (`http://127.0.0.1:9/ws`): resposta
+  `valid: true`, `source: "local"`, sem erro 5xx.
+- Rate limiting exercitado com limite 2: terceira requisição retorna `429`, `Retry-After`
+  e cabeçalho CORS.
+- Repositório privado `Georgebecker/api-cep-valida` com o branch `master` sincronizado.
+- `.env` confirmado como ignorado e não versionado.
 
 ## Pendências
 
-- Nenhuma pendência funcional conhecida ao fim do MVP.
-- Publicação no GitHub depende de autenticação da CLI `gh` (verificada antes do push).
+- **Docker não instalado na máquina de verificação.** O `Dockerfile` foi entregue, mas o
+  build não pôde ser executado localmente. Não afeta a API nem os testes.
+- Aviso conhecido do Starlette 1.8 (`httpx2` recomendado pelo `TestClient`); a suíte passa
+  e a API não é afetada. A troca ficou como ideia futura para não sair do escopo.
+
+## Ideias futuras (não implementadas no MVP)
+
+- Consulta de CEP em lote.
+- Autenticação por chave de API para uso público.
+- Métricas Prometheus e tracing.
+- Migrar o `TestClient` para `httpx2` quando a integração com o Starlette estiver estável.
