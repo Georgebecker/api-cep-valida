@@ -13,6 +13,7 @@ from src.schemas import (
     HealthResponse,
     ValidationResponse,
 )
+from src.middleware import RateLimitMiddleware
 from src.services import viacep
 from src.validators.cep import validate_cep
 from src.validators.cnpj import validate_cnpj
@@ -29,6 +30,7 @@ app = FastAPI(
     description="Validação local de CPF, CNPJ, CEP e UF, com consulta de endereço no ViaCEP.",
 )
 
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

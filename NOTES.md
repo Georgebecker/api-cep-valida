@@ -80,6 +80,10 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
   Apenas respostas `found` e `not_found` são cacheadas; `unavailable` não é, para não
   prolongar uma indisponibilidade. Métrica: duas consultas iguais passam de 2 para 1
   chamada HTTP.
+- **Ciclo 3 (ACEITO): rate limiting.** Janela deslizante em `src/middleware.py` aplicada
+  a `/validate/*`, com padrão de 60 requisições por 60 s por IP. Escolhas: usa
+  `request.client.host` (não confia em `X-Forwarded-For` sem proxy confiável), `/health`
+  fica isento, o estado é por processo e `reset()` existe para testes.
 
 ## Ideias futuras (não implementadas no MVP)
 

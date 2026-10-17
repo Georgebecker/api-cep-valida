@@ -38,4 +38,24 @@ com melhoria medida e suíte verde.
 - **Decisão:** **ACEITO** — redução de chamadas externas sem mudar o corpo da resposta
   e sem cachear indisponibilidade.
 
-_(ciclo 3 preenchido ao longo da execução)_
+### Ciclo 3 — Rate limiting
+
+- **Hipótese:** limitar requisições por IP protege a API e a fonte externa sem
+  prejudicar o uso normal.
+- **Mudança:** middleware de janela deslizante em `src/middleware.py`, configuração por
+  ambiente, resposta `429` com `Retry-After` e quatro testes.
+- **Métrica:** com limite 3 e janela 60 s, quatro requisições resultam em
+  **[200, 200, 200, 429]**; com `RATE_LIMIT_ENABLED=0`, cinco requisições resultam em
+  **5×200**; `/health` permanece `200` mesmo com limite 1; após a janela, o acesso é
+  liberado novamente.
+- **Verificação:** `python -m pytest` → `138 passed` (134 → 138).
+- **Decisão:** **ACEITO** — limite é respeitado, desligável por ambiente e não afeta
+  saúde nem frontend.
+
+## Resultado final
+
+- Suíte: **138 testes verdes**.
+- Endpoints: `/health`, `/validate/cpf`, `/validate/cnpj`, `/validate/cep`, `/validate/uf`,
+  `/validate/pis`.
+- Cache do ViaCEP e rate limiting ativos por padrão e configuráveis por ambiente.
+- Classificação do README reavaliada: **usável** (testes verdes, README completo, push feito).
