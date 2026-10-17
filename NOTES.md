@@ -62,6 +62,15 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 - **Testes não dependem de rede**: `requests.get` é substituído por mocks em todos os
   cenários (sucesso, não encontrado, queda e resposta inesperada).
 
+## Interface web
+
+- Página estática em `frontend/`, sem build e sem dependência de frontend, servida em `/`.
+- Abas para os cinco documentos, indicador de status via `/health`, exemplos clicáveis,
+  resultado com normalização/fonte/endereço/tempo e histórico local em `localStorage`
+  (nunca enviado à API).
+- `docker-compose.yml` disponibiliza a execução em container com healthcheck; o Docker não
+  está instalado na máquina de verificação, então o compose não foi executado localmente.
+
 ## Qualidade e verificação
 
 - **`pytest.ini` com `pythonpath = .`** desde o primeiro commit, evitando falha de
@@ -99,8 +108,9 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 
 ## Pendências
 
-- **Docker não instalado na máquina de verificação.** O `Dockerfile` foi entregue, mas o
-  build não pôde ser executado localmente. Não afeta a API nem os testes.
+- **Docker não instalado na máquina de verificação.** O `Dockerfile` e o
+  `docker-compose.yml` foram entregues, mas o build não pôde ser executado localmente.
+  Não afeta a API nem os testes.
 - Aviso conhecido do Starlette 1.8 (`httpx2` recomendado pelo `TestClient`); a suíte passa
   e a API não é afetada. A troca ficou como ideia futura para não sair do escopo.
 

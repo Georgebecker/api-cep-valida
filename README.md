@@ -102,6 +102,7 @@ api-cep-valida/
 ├── tests/                   # suíte pytest (inclui teste da classificação)
 ├── frontend/                # página estática de teste
 ├── requirements.txt         # versões exatas
+├── docker-compose.yml       # execução em container
 ├── pytest.ini               # pythonpath = .
 ├── Dockerfile
 ├── NOTES.md                 # decisões e pendências
@@ -122,12 +123,27 @@ uvicorn src.main:app --reload
 - Frontend: <http://127.0.0.1:8000/>
 - Testes: `python -m pytest`
 
+## Frontend
+
+A página em `/` é estática, sem build e sem dependências de frontend. Ela oferece abas
+para CPF, CNPJ, CEP, UF e PIS/PASEP, indicador de status da API, exemplos clicáveis,
+resultado detalhado (fonte, endereço e tempo de resposta) e histórico local no navegador.
+Nada do histórico é enviado para a API.
+
 ## Docker
 
 ```bash
 docker build -t api-cep-valida .
 docker run --rm -p 8000:8000 api-cep-valida
 ```
+
+Ou com Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+A interface fica em <http://127.0.0.1:8000/> e a documentação interativa em `/docs`.
 
 ## Configuração
 
