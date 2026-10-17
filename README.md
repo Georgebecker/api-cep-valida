@@ -136,6 +136,16 @@ docker run --rm -p 8000:8000 api-cep-valida
 | `VIA_CEP_BASE_URL` | `https://viacep.com.br/ws` | Base da API do ViaCEP |
 | `VIA_CEP_TIMEOUT` | `3` | Timeout em segundos por tentativa |
 | `VIA_CEP_CACHE_TTL` | `300` | Tempo de vida do cache de CEP, em segundos (`0` desativa) |
+| `RATE_LIMIT_ENABLED` | `1` | Liga/desliga o limite (`0` desativa) |
+| `RATE_LIMIT_REQUESTS` | `60` | Requisições permitidas por janela e por IP |
+| `RATE_LIMIT_WINDOW` | `60` | Tamanho da janela em segundos |
+
+### Limites de uso
+
+As rotas `/validate/*` aceitam, por IP, **60 requisições por minuto** (janela deslizante).
+Ao exceder, a API responde `429` com o cabeçalho `Retry-After`. O `/health` e os arquivos
+estáticos não são limitados. O contador fica em memória de cada processo — reiniciar o
+servidor zera o histórico e múltiplas instâncias não compartilham o limite.
 
 Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
 
@@ -143,8 +153,10 @@ Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; ve
 
 - Sem banco de dados, autenticação ou armazenamento de dados pessoais.
 - CORS liberado no MVP para permitir o frontend estático.
-- PIS/PASEP e cache do ViaCEP foram aceitos nos ciclos 1 e 2; o rate limiting tem
+- PIS/PASEP, cache do ViaCEP e rate limiting foram aceitos nos ciclos 1, 2 e 3, com
   decisão registrada em [`log_loop.md`](log_loop.md).
+- O rate limiting vive em memória por processo: múltiplas instâncias não compartilham o
+  contador e um proxy reverso deve ser configurado para preservar o IP do cliente.
 - Decisões de implementação, versões e ideias futuras estão em [`NOTES.md`](NOTES.md).
 
 ## Licença
