@@ -66,10 +66,19 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 
 - Página estática em `frontend/`, sem build e sem dependência de frontend, servida em `/`.
 - Abas para os cinco documentos, indicador de status via `/health`, exemplos clicáveis,
-  resultado com normalização/fonte/endereço/tempo e histórico local em `localStorage`
-  (nunca enviado à API).
+  resultado com normalização/fonte/endereço/tempo e histórico apenas em memória na página
+  (nunca enviado à API e apagado ao recarregar).
 - `docker-compose.yml` disponibiliza a execução em container com healthcheck; o Docker não
   está instalado na máquina de verificação, então o compose não foi executado localmente.
+
+## Segurança e privacidade
+
+- Sem persistência de documentos e sem banco de dados.
+- CPF, CNPJ, UF e PIS/PASEP são validados localmente; somente o CEP vai ao ViaCEP.
+- Histórico do frontend apenas em memória (não usa `localStorage`).
+- Rate limiting com SHA-256 do IP em memória, sem guardar o IP em claro.
+- `.env` fora do git e hooks de commit/push ativos.
+- Pendente para produção: HTTPS, CORS restrito, limite de tamanho de corpo e autenticação/quotas.
 
 ## Qualidade e verificação
 
@@ -105,6 +114,17 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
   e cabeçalho CORS.
 - Repositório privado `Georgebecker/api-cep-valida` com o branch `master` sincronizado.
 - `.env` confirmado como ignorado e não versionado.
+
+## Agora vs. depois
+
+**Concluído agora (verificado):** API, algoritmos de CPF/CNPJ/PIS/PASEP, CEP com ViaCEP,
+fallback e cache, rate limiting, frontend, 138 testes, documentação classificada e
+repositório privado.
+
+**Depois (fora do escopo do MVP ou depende de ambiente):** build da imagem Docker
+(Docker não instalado), pipeline de CI, HTTPS/CORS restrito/limite de corpo para
+exposição pública, autenticação/quotas, validação em lote, métricas/tracing e migração
+do `TestClient` para `httpx2`.
 
 ## Pendências
 

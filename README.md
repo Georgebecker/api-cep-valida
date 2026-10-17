@@ -2,7 +2,7 @@
 
 API REST em Python para validar documentos brasileiros — CPF, CNPJ, CEP e UF — com
 algoritmos oficiais, frontend estático de teste e consulta de endereço no ViaCEP.
-Não armazena dados pessoais, não usa banco de dados e não depende de serviço pago.
+A API não persiste documentos pessoais, não usa banco de dados e não depende de serviço pago.
 
 ## Classificação
 
@@ -127,8 +127,8 @@ uvicorn src.main:app --reload
 
 A página em `/` é estática, sem build e sem dependências de frontend. Ela oferece abas
 para CPF, CNPJ, CEP, UF e PIS/PASEP, indicador de status da API, exemplos clicáveis,
-resultado detalhado (fonte, endereço e tempo de resposta) e histórico local no navegador.
-Nada do histórico é enviado para a API.
+resultado detalhado (fonte, endereço e tempo de resposta) e histórico apenas em memória na
+página, apagado ao recarregar. Nada do histórico é enviado para a API.
 
 ## Docker
 
@@ -165,6 +165,17 @@ fica em memória de cada processo — reiniciar o servidor zera o histórico e m
 instâncias não compartilham o limite.
 
 Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
+
+## Segurança e privacidade
+
+- A API não persiste CPF, CNPJ, CEP, UF ou PIS/PASEP; não há banco de dados.
+- CPF, CNPJ, UF e PIS/PASEP são validados localmente e nunca saem do servidor; somente o CEP é enviado ao ViaCEP.
+- O frontend mantém o histórico apenas em memória; recarregar a página apaga tudo.
+- O rate limiting guarda apenas o SHA-256 do IP, em memória, durante a janela configurada.
+- `.env` é ignorado pelo git e os hooks bloqueiam commit/push de segredo; nenhuma chave é usada.
+- Entradas são limitadas a 32 caracteres e validadas por schema; não há SQL, shell ou avaliação dinâmica.
+- Para exposição pública ainda faltam: HTTPS (proxy reverso), CORS restrito ao domínio do frontend,
+  limite de tamanho de corpo e, se necessário, autenticação/quotas por cliente. O MVP local roda em HTTP.
 
 ## Decisões e limitações
 
