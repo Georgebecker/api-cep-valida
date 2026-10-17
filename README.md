@@ -1,11 +1,15 @@
 # API CEP Valida
 
-**Aqui vive um agente de Loop Engineering** (DeepSeek Flash): ele melhora sistemas em
-**ciclos contínuos e verificáveis** — lê o objetivo, propõe UMA mudança pequena, testa,
-mede, decide (mantém ou reverte) e registra. Sem intervenção humana a cada passo.
+API REST em Python para validar documentos brasileiros — CPF, CNPJ, CEP e UF — com
+algoritmos oficiais, frontend estático de teste e consulta de endereço no ViaCEP.
+Não armazena dados pessoais, não usa banco de dados e não depende de serviço pago.
 
-Este repositório **é o modelo em si** — o Loop Engineer completo (contrato, regras de ouro,
-ferramentas de verificação e agente), pronto para receber um sistema alvo e rodar ciclos.
+## Classificação
+
+- **Propósito:** oferecer validação confiável, rápida e sem armazenamento de CPF, CNPJ, CEP e UF, tanto por HTTP/JSON quanto por uma página estática de teste.
+- **Maturidade:** usável
+- **O que está sendo treinado:** o processo de Loop Engineering (hipótese → mudança pequena → teste → medição → decisão ACEITO/REJEITADO) aplicado à própria API; não há treinamento de modelo de machine learning.
+- **Quem usaria:** desenvolvedores e times que precisam validar documentos antes de persistir cadastros, como equipes de backoffice, ERPs, formulários públicos e integrações internas.
 
 ---
 
@@ -20,86 +24,126 @@ ferramentas de verificação e agente), pronto para receber um sistema alvo e ro
 
 ---
 
-## Loop Engineering — o coração do projeto
+## Método: Loop Engineering
 
-Um agente opera em ciclos: lê o contrato (`program.md`), propõe **UMA** hipótese pequena,
-aplica a mudança, roda a verificação, **mede a métrica principal** e decide —
-**ACEITO** (mantém e atualiza a linha de base) ou **REJEITADO** (reverte na hora) —
-registrando tudo no log. O ciclo repete até a meta, dentro de limites definidos.
-
-**Um ciclo de verdade, do começo ao fim (exemplo):**
-
-```
-Iteração 1
-- Hipótese: trocar a biblioteca moment.js por date-fns
-- Arquivos: workspace/lib/date.ts, workspace/package.json
-- Métrica antes: 312 kB  →  depois: 298 kB  (melhoria de 4,49%)
-- Comandos de verificação: todos passaram
-- Decisão: ACEITO — a linha de base vira 298 kB; o próximo ciclo parte daqui
-
-Iteração 2
-- Hipótese: remover um import não utilizado de lodash
-- Métrica antes: 298 kB  →  depois: 298 kB  (não melhorou)
-- Decisão: REJEITADO — a mudança é revertida e nada entra na linha de base
-```
-
-**As vantagens na prática:**
-
-- **Melhoria medida, não "achada":** cada iteração tem número antes/depois; o que não melhora é revertido.
-- **Zero regressão silenciosa:** a linha de base só avança quando a métrica melhora de verdade.
-- **Rede de segurança total:** hipótese pequena + ponto de retorno antes de cada ciclo — reverter é um comando só.
-- **Decisão objetiva:** critérios de aceite/rejeição escritos no contrato — não é opinião nem promessa da IA.
-- **Conhecimento que não se perde:** o `log.md` guarda cada tentativa (hipótese, arquivos, métricas, decisão).
-- **Autonomia sem risco:** o agente só mexe no que o contrato permite (dentro de `workspace/`); o resto é proibido e bloqueado.
-- **Ganho acumulado:** melhorias aceitas se somam — o avanço compõe a cada ciclo.
-- **Custo controlado:** limites de parada (meta, iterações, rejeições seguidas) e temperatura baixa (consistência).
-- **Um contrato, dois "cérebros":** funciona hoje com o agente do chat e amanhã com o runner autônomo (API DeepSeek).
-
-**Onde está:** `meu-loop-agente/` — contrato (`program.md`), configuração de máquina
-(`config_loop.json`), linha de base (`baseline.json`), log (`log.md`), comportamento do
-agente (`system_prompt.md`) e o verificador (`verificar_iteracao.py`).
-Guia de uso: [`meu-loop-agente/README.md`](meu-loop-agente/README.md).
+O projeto nasceu da base [`meu-loop-agente/`](meu-loop-agente/) e mantém o ciclo de
+melhoria: cada mudança pós-MVP tem hipótese, métrica, decisão e registro. Os três
+ciclos executados (PIS/PASEP, cache do ViaCEP e rate limiting) estão em
+[`log_loop.md`](log_loop.md).
 
 ---
 
-## O que tem aqui (por enquanto)
+## Endpoints
 
-- `docs/REGRAS_DE_OURO.md` — as melhores regras, sintetizadas, para todo projeto de dados (Python + SQL + arquitetura moderna).
-- `meu-loop-agente/` — **o coração do projeto:** o agente de Loop Engineering (contrato, métrica, log e verificador para ciclos de melhoria contínua; ele só mexe em `meu-loop-agente/workspace/`).
-- `.env` / `.env.example` — configuração pronta (caminhos, banco de dados, APIs), sem segredo no repositório.
-- `.githooks/` — ganchos de proteção do git: bloqueiam o `.env` no commit **e** no envio ao remoto (ativar em um clone novo: `git config core.hooksPath .githooks` ou `.githooks\instalar.ps1`).
-- Pastas-base prontas para crescer: `data/raw`, `data/processed`, `data/descartados`, `notebooks`.
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| GET | `/health` | Saúde do serviço |
+| POST | `/validate/cpf` | Valida CPF (algoritmo oficial) |
+| POST | `/validate/cnpj` | Valida CNPJ (algoritmo oficial) |
+| POST | `/validate/cep` | Valida formato e consulta o ViaCEP |
+| POST | `/validate/uf` | Valida uma das 27 siglas de UF |
+| GET | `/` | Frontend estático de teste |
 
-## Estrutura prevista (vai evoluir com o projeto)
+O corpo dos endpoints de validação é sempre `{"value": "<documento>"}`. Campos extras,
+valores vazios ou com mais de 32 caracteres recebem `422`.
+
+### Exemplos
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/validate/cpf \
+  -H "Content-Type: application/json" \
+  -d '{"value": "529.982.247-25"}'
+```
+
+```json
+{"valid": true, "document": "cpf", "normalized": "52998224725", "message": "CPF válido"}
+```
+
+```bash
+curl -s -X POST http://127.0.0.1:8000/validate/cep \
+  -H "Content-Type: application/json" \
+  -d '{"value": "01001-000"}'
+```
+
+```json
+{
+  "valid": true,
+  "document": "cep",
+  "normalized": "01001-000",
+  "message": "CEP válido e encontrado no ViaCEP",
+  "source": "viacep",
+  "address": {"cep": "01001-000", "street": "Praça da Sé", "city": "São Paulo", "state": "SP"}
+}
+```
+
+Se o ViaCEP estiver indisponível, o CEP continua validado pelo formato e a resposta traz
+`"source": "local"` e `"address": null`, sem erro 5xx. Se o ViaCEP responder que o CEP
+não existe, a resposta é `"valid": false` com `"source": "viacep"`.
+
+## Regras de validação
+
+- **CPF:** 11 dígitos, rejeita sequência repetida, valida os dois dígitos verificadores; aceita `.` e `-`.
+- **CNPJ:** 14 dígitos, rejeita sequência repetida, valida os dois dígitos verificadores; aceita `.`, `/` e `-`.
+- **CEP:** 8 dígitos no padrão `NNNNN-NNN`, rejeita `00000-000`; consulta o ViaCEP com timeout de 3 s e até 3 tentativas.
+- **UF:** uma das 27 siglas oficiais, sem diferenciar maiúsculas de minúsculas.
+- Entradas com letras ou símbolos fora dos separadores usuais são rejeitadas, não limpas silenciosamente.
+
+## Estrutura do projeto
 
 ```
 api-cep-valida/
-├── .env / .env.example        # configuração (nunca commitar o .env)
-├── .githooks/                 # ganchos de proteção (bloqueiam .env no commit e no envio)
-├── README.md                  # este arquivo
-├── docs/                      # documentação e regras de ouro
-├── meu-loop-agente/           # agente de Loop Engineering (contrato, log, workspace, verificador)
-├── data/
-│   ├── raw/                   # dados brutos (nunca alterar)
-│   ├── processed/             # dados tratados/limpos
-│   └── descartados/           # fora de circulação (nunca apagar)
-├── notebooks/                 # análises exploratórias (.ipynb)
-├── src/                       # código reutilizável (cresce depois)
-└── sql/                       # consultas e schemas SQL (cresce depois)
+├── src/
+│   ├── main.py              # aplicação FastAPI e rotas
+│   ├── schemas.py           # modelos Pydantic de entrada e saída
+│   ├── services/viacep.py   # consulta externa com retry e fallback
+│   └── validators/          # CPF, CNPJ, CEP e UF
+├── tests/                   # suíte pytest (inclui teste da classificação)
+├── frontend/                # página estática de teste
+├── requirements.txt         # versões exatas
+├── pytest.ini               # pythonpath = .
+├── Dockerfile
+├── NOTES.md                 # decisões e pendências
+├── log_loop.md              # ciclos de melhoria
+└── LICENSE                  # MIT
 ```
 
-## Requisitos
+## Como rodar
 
-- **Python 3.8+** — o verificador do agente usa somente a biblioteca padrão (sem dependências externas por enquanto; veja `requirements.txt`).
-- **Git** — com os ganchos de proteção ativos (`git config core.hooksPath .githooks`).
-- **Node.js** — opcional; necessário apenas se o projeto alvo for o exemplo Next.js do `program.md`.
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn src.main:app --reload
+```
 
-## Comece por aqui
+- API: <http://127.0.0.1:8000> (documentação interativa em `/docs`)
+- Frontend: <http://127.0.0.1:8000/>
+- Testes: `python -m pytest`
 
-1. Leia [`docs/REGRAS_DE_OURO.md`](docs/REGRAS_DE_OURO.md) — é o contrato do projeto (a **Parte IV** é o guia do agente de Loop Engineering).
-2. Para operar o agente: leia [`meu-loop-agente/README.md`](meu-loop-agente/README.md) — contrato, comandos e como rodar um ciclo.
-3. O `.env` já está criado neste projeto (e nunca vai ao git); em um clone novo, copie `.env.example` para `.env` e ajuste os valores (caminhos, banco, chaves).
-4. Use `data/raw` para o que vier bruto e `data/processed` só para o que for tratado e validado.
-5. Nunca apague dado: se não servir mais, mova para uma pasta de descarte (ex.: `data/descartados/`).
+## Docker
 
----
+```bash
+docker build -t api-cep-valida .
+docker run --rm -p 8000:8000 api-cep-valida
+```
+
+## Configuração
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `VIA_CEP_BASE_URL` | `https://viacep.com.br/ws` | Base da API do ViaCEP |
+| `VIA_CEP_TIMEOUT` | `3` | Timeout em segundos por tentativa |
+
+Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
+
+## Decisões e limitações
+
+- Sem banco de dados, autenticação ou armazenamento de dados pessoais.
+- CORS liberado no MVP para permitir o frontend estático.
+- Rate limiting, cache do ViaCEP e PIS/PASEP foram avaliados no loop de melhoria, com
+  decisão registrada em [`log_loop.md`](log_loop.md).
+- Decisões de implementação, versões e ideias futuras estão em [`NOTES.md`](NOTES.md).
+
+## Licença
+
+MIT — veja [`LICENSE`](LICENSE).
