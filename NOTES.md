@@ -81,9 +81,10 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
   prolongar uma indisponibilidade. Métrica: duas consultas iguais passam de 2 para 1
   chamada HTTP.
 - **Ciclo 3 (ACEITO): rate limiting.** Janela deslizante em `src/middleware.py` aplicada
-  a `/validate/*`, com padrão de 60 requisições por 60 s por IP. Escolhas: usa
-  `request.client.host` (não confia em `X-Forwarded-For` sem proxy confiável), `/health`
-  fica isento, o estado é por processo e `reset()` existe para testes.
+  a `/validate/*`, com padrão de 60 requisições por 60 s por cliente. Escolhas: a chave é
+  o SHA-256 de `request.client.host` (o IP não fica em claro e `X-Forwarded-For` não é
+  confiado sem proxy confiável), `/health` fica isento, o estado é por processo e
+  `reset()` existe para testes.
 
 ## Verificação final
 

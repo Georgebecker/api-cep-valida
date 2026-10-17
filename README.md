@@ -137,15 +137,16 @@ docker run --rm -p 8000:8000 api-cep-valida
 | `VIA_CEP_TIMEOUT` | `3` | Timeout em segundos por tentativa |
 | `VIA_CEP_CACHE_TTL` | `300` | Tempo de vida do cache de CEP, em segundos (`0` desativa) |
 | `RATE_LIMIT_ENABLED` | `1` | Liga/desliga o limite (`0` desativa) |
-| `RATE_LIMIT_REQUESTS` | `60` | Requisições permitidas por janela e por IP |
+| `RATE_LIMIT_REQUESTS` | `60` | Requisições permitidas por janela e por cliente |
 | `RATE_LIMIT_WINDOW` | `60` | Tamanho da janela em segundos |
 
 ### Limites de uso
 
-As rotas `/validate/*` aceitam, por IP, **60 requisições por minuto** (janela deslizante).
-Ao exceder, a API responde `429` com o cabeçalho `Retry-After`. O `/health` e os arquivos
-estáticos não são limitados. O contador fica em memória de cada processo — reiniciar o
-servidor zera o histórico e múltiplas instâncias não compartilham o limite.
+As rotas `/validate/*` aceitam, por cliente, **60 requisições por minuto** (janela deslizante).
+A chave do limite é o SHA-256 do IP, não o IP em claro. Ao exceder, a API responde `429` com
+o cabeçalho `Retry-After`. O `/health` e os arquivos estáticos não são limitados. O contador
+fica em memória de cada processo — reiniciar o servidor zera o histórico e múltiplas
+instâncias não compartilham o limite.
 
 Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
 

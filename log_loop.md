@@ -43,7 +43,8 @@ com melhoria medida e suíte verde.
 - **Hipótese:** limitar requisições por IP protege a API e a fonte externa sem
   prejudicar o uso normal.
 - **Mudança:** middleware de janela deslizante em `src/middleware.py`, configuração por
-  ambiente, resposta `429` com `Retry-After` e quatro testes.
+  ambiente, resposta `429` com `Retry-After` e quatro testes. A chave do limite é o
+  SHA-256 do IP, para não manter o endereço em claro na memória.
 - **Métrica:** com limite 3 e janela 60 s, quatro requisições resultam em
   **[200, 200, 200, 429]**; com `RATE_LIMIT_ENABLED=0`, cinco requisições resultam em
   **5×200**; `/health` permanece `200` mesmo com limite 1; após a janela, o acesso é
