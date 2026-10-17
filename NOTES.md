@@ -94,7 +94,8 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
   `3,2,9,8,7,6,5,4,3,2`; dígito calculado como `11 - (soma % 11)` e convertido para `0`
   quando o resultado é 10 ou 11. Rejeita sequências repetidas. Endpoint `/validate/pis`.
 - **Ciclo 2 (ACEITO): cache do ViaCEP.** Cache em memória com TTL de 300 s
-  (`VIA_CEP_CACHE_TTL`), limite de 1024 entradas e `Lock` para acesso concorrente.
+  (`VIA_CEP_CACHE_TTL`), limite de 1024 entradas com evicção FIFO, `Lock` para acesso
+  concorrente e `clear_cache()` para testes.
   Apenas respostas `found` e `not_found` são cacheadas; `unavailable` não é, para não
   prolongar uma indisponibilidade. Métrica: duas consultas iguais passam de 2 para 1
   chamada HTTP.
@@ -106,7 +107,7 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 
 ## Verificação final
 
-- Suíte completa: **138 testes verdes**.
+- Suíte completa: **139 testes verdes** (inclui o teste do limite do cache).
 - Servidor Uvicorn: `/health`, `/docs`, frontend e todos os endpoints exercitados com HTTP real.
 - Fallback do ViaCEP exercitado com base inacessível (`http://127.0.0.1:9/ws`): resposta
   `valid: true`, `source: "local"`, sem erro 5xx.
@@ -118,7 +119,7 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 ## Agora vs. depois
 
 **Concluído agora (verificado):** API, algoritmos de CPF/CNPJ/PIS/PASEP, CEP com ViaCEP,
-fallback e cache, rate limiting, frontend, 138 testes, documentação classificada e
+fallback e cache, rate limiting, frontend, 139 testes, documentação classificada e
 repositório privado.
 
 **Depois (fora do escopo do MVP ou depende de ambiente):** build da imagem Docker

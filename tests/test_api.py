@@ -211,3 +211,23 @@ def test_falha_nao_entra_no_cache(client: TestClient, monkeypatch: pytest.Monkey
     assert first["source"] == "local"
     assert second["source"] == "viacep"
     assert len(calls) == 4
+
+
+def test_cache_respeita_limite_de_entradas(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from src.services import viacep
+
+    monkeypatch.setattr(viacep, "MAX_CACHE_ENTRIES", 2)
+    viacep.clear_cache()
+
+    def fake_get(url: str, timeout: float) -> FakeResponse:
+        return FakeResponse({"erro": True})
+
+    monkeypatch.setattr("src.services.viacep.requests.get", fake_get)
+
+    for cep in ("01001000", "02001000", "03001000"):
+        response = client.post("/validate/cep", json={"value": cep})
+        assert response.status_code == 200
+
+    assert len(viacep._CACHE) == 2

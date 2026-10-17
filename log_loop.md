@@ -55,7 +55,7 @@ com melhoria medida e suíte verde.
 
 ## Resultado final
 
-- Suíte: **138 testes verdes**.
+- Suíte: **139 testes verdes** (inclui o teste do limite do cache).
 - Endpoints: `/health`, `/validate/cpf`, `/validate/cnpj`, `/validate/cep`, `/validate/uf`,
   `/validate/pis`.
 - Cache do ViaCEP e rate limiting ativos por padrão e configuráveis por ambiente.

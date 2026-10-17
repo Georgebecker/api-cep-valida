@@ -2,6 +2,7 @@
 
 import os
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from threading import Lock
 from typing import Literal
@@ -44,7 +45,7 @@ def _cache_ttl() -> float:
         return DEFAULT_CACHE_TTL
 
 
-_CACHE: dict[str, tuple[float, CepLookup]] = {}
+_CACHE: OrderedDict[str, tuple[float, CepLookup]] = OrderedDict()
 _CACHE_LOCK = Lock()
 
 
@@ -63,19 +64,22 @@ def _cache_get(cep_digits: str) -> CepLookup | None:
         if time.monotonic() >= expires_at:
             _CACHE.pop(cep_digits, None)
             return None
+        _CACHE.move_to_end(cep_digits)
         return result
 
 
 def _cache_set(cep_digits: str, result: CepLookup) -> None:
     ttl = _cache_ttl()
-    if ttl <= 0 or result.status == "unavailable":
+    if ttl <= 0 or result.status == "unavailable" or MAX_CACHE_ENTRIES <= 0:
         return
     with _CACHE_LOCK:
-        if len(_CACHE) >= MAX_CACHE_ENTRIES:
-            now = time.monotonic()
-            for key in [key for key, (expires_at, _) in _CACHE.items() if expires_at <= now]:
-                del _CACHE[key]
-        _CACHE[cep_digits] = (time.monotonic() + ttl, result)
+        now = time.monotonic()
+        for key in [key for key, (expires_at, _) in _CACHE.items() if expires_at <= now]:
+            del _CACHE[key]
+        while len(_CACHE) >= MAX_CACHE_ENTRIES:
+            _CACHE.popitem(last=False)
+        _CACHE[cep_digits] = (now + ttl, result)
+        _CACHE.move_to_end(cep_digits)
 
 
 def _request_cep(cep_digits: str) -> dict:
