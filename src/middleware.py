@@ -1,5 +1,6 @@
 """Rate limiting simples em memória para as rotas de validação."""
 
+import hashlib
 import os
 import time
 from collections import deque
@@ -34,8 +35,13 @@ def reset() -> None:
         _HITS.clear()
 
 
+def _client_key(request: Request) -> str:
+    host = request.client.host if request.client else "desconhecido"
+    return hashlib.sha256(host.encode("utf-8")).hexdigest()
+
+
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Aplica janela deslizante por IP nas rotas `/validate/*`."""
+    """Aplica janela deslizante por cliente (hash do IP) nas rotas `/validate/*`."""
 
     async def dispatch(self, request: Request, call_next):
         if not _enabled() or not request.url.path.startswith(PROTECTED_PREFIX):
@@ -43,7 +49,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         limit = int(_env_float("RATE_LIMIT_REQUESTS", 60, 1))
         window = _env_float("RATE_LIMIT_WINDOW", 60.0, 0.1)
-        client = request.client.host if request.client else "desconhecido"
+        client = _client_key(request)
         now = time.monotonic()
 
         with _LOCK:
