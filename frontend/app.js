@@ -5,6 +5,7 @@ const EXAMPLES = {
   cnpj: ["11.222.333/0001-81", "04.252.011/0001-10"],
   cep: ["01001-000", "20040-020", "30130-010"],
   uf: ["SP", "rj", "DF"],
+  pis: ["120.425.445-09", "170.332.558-94"],
 };
 
 const PLACEHOLDERS = {
@@ -12,6 +13,7 @@ const PLACEHOLDERS = {
   cnpj: "11.222.333/0001-81",
   cep: "01001-000",
   uf: "SP",
+  pis: "120.425.445-09",
 };
 
 const form = document.querySelector("#validate-form");

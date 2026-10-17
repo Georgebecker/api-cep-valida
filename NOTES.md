@@ -70,6 +70,12 @@ do escopo ficam na seção de ideias futuras e não são implementadas no MVP.
 - **Teste da classificação** valida a seção `## Classificação`, os quatro campos
   preenchidos, a maturidade declarada e os entregáveis quando a maturidade é `usável`.
 
+## Loop de melhoria
+
+- **Ciclo 1 (ACEITO): PIS/PASEP.** Algoritmo oficial com pesos
+  `3,2,9,8,7,6,5,4,3,2`; dígito calculado como `11 - (soma % 11)` e convertido para `0`
+  quando o resultado é 10 ou 11. Rejeita sequências repetidas. Endpoint `/validate/pis`.
+
 ## Ideias futuras (não implementadas no MVP)
 
 - Consulta de CEP em lote.

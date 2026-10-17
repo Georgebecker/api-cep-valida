@@ -47,6 +47,7 @@ def test_health(client: TestClient) -> None:
         ("/validate/cpf", "cpf", "529.982.247-25", "529.982.247-26"),
         ("/validate/cnpj", "cnpj", "11.222.333/0001-81", "11.222.333/0001-82"),
         ("/validate/uf", "uf", "sp", "XX"),
+        ("/validate/pis", "pis", "120.425.445-09", "120.425.445-08"),
     ],
 )
 def test_endpoints_aceitam_valido_e_rejeitam_invalido(

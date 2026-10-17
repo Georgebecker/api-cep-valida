@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-DocumentKind = Literal["cpf", "cnpj", "cep", "uf"]
+DocumentKind = Literal["cpf", "cnpj", "cep", "uf", "pis"]
 
 
 class DocumentRequest(BaseModel):
