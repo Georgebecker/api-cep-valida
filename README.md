@@ -6,7 +6,7 @@ Não armazena dados pessoais, não usa banco de dados e não depende de serviço
 
 ## Classificação
 
-- **Propósito:** oferecer validação confiável, rápida e sem armazenamento de CPF, CNPJ, CEP e UF, tanto por HTTP/JSON quanto por uma página estática de teste.
+- **Propósito:** oferecer validação confiável, rápida e sem armazenamento de CPF, CNPJ, CEP, UF e PIS/PASEP, tanto por HTTP/JSON quanto por uma página estática de teste.
 - **Maturidade:** usável
 - **O que está sendo treinado:** o processo de Loop Engineering (hipótese → mudança pequena → teste → medição → decisão ACEITO/REJEITADO) aplicado à própria API; não há treinamento de modelo de machine learning.
 - **Quem usaria:** desenvolvedores e times que precisam validar documentos antes de persistir cadastros, como equipes de backoffice, ERPs, formulários públicos e integrações internas.
@@ -42,6 +42,7 @@ ciclos executados (PIS/PASEP, cache do ViaCEP e rate limiting) estão em
 | POST | `/validate/cnpj` | Valida CNPJ (algoritmo oficial) |
 | POST | `/validate/cep` | Valida formato e consulta o ViaCEP |
 | POST | `/validate/uf` | Valida uma das 27 siglas de UF |
+| POST | `/validate/pis` | Valida PIS/PASEP (algoritmo oficial) |
 | GET | `/` | Frontend estático de teste |
 
 O corpo dos endpoints de validação é sempre `{"value": "<documento>"}`. Campos extras,
@@ -86,6 +87,7 @@ não existe, a resposta é `"valid": false` com `"source": "viacep"`.
 - **CNPJ:** 14 dígitos, rejeita sequência repetida, valida os dois dígitos verificadores; aceita `.`, `/` e `-`.
 - **CEP:** 8 dígitos no padrão `NNNNN-NNN`, rejeita `00000-000`; consulta o ViaCEP com timeout de 3 s e até 3 tentativas.
 - **UF:** uma das 27 siglas oficiais, sem diferenciar maiúsculas de minúsculas.
+- **PIS/PASEP:** 11 dígitos, rejeita sequência repetida e confere o dígito verificador pelos pesos oficiais.
 - Entradas com letras ou símbolos fora dos separadores usuais são rejeitadas, não limpas silenciosamente.
 
 ## Estrutura do projeto
@@ -96,7 +98,7 @@ api-cep-valida/
 │   ├── main.py              # aplicação FastAPI e rotas
 │   ├── schemas.py           # modelos Pydantic de entrada e saída
 │   ├── services/viacep.py   # consulta externa com retry e fallback
-│   └── validators/          # CPF, CNPJ, CEP e UF
+│   └── validators/          # CPF, CNPJ, CEP, UF e PIS/PASEP
 ├── tests/                   # suíte pytest (inclui teste da classificação)
 ├── frontend/                # página estática de teste
 ├── requirements.txt         # versões exatas
@@ -140,8 +142,8 @@ Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; ve
 
 - Sem banco de dados, autenticação ou armazenamento de dados pessoais.
 - CORS liberado no MVP para permitir o frontend estático.
-- Rate limiting, cache do ViaCEP e PIS/PASEP foram avaliados no loop de melhoria, com
-  decisão registrada em [`log_loop.md`](log_loop.md).
+- PIS/PASEP foi aceito no ciclo 1; cache do ViaCEP e rate limiting têm decisão
+  registrada em [`log_loop.md`](log_loop.md).
 - Decisões de implementação, versões e ideias futuras estão em [`NOTES.md`](NOTES.md).
 
 ## Licença

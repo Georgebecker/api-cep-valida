@@ -17,6 +17,7 @@ from src.services import viacep
 from src.validators.cep import validate_cep
 from src.validators.cnpj import validate_cnpj
 from src.validators.cpf import validate_cpf
+from src.validators.pis import validate_pis
 from src.validators.uf import validate_uf
 
 VERSION = "1.0.0"
@@ -61,6 +62,18 @@ def validate_cnpj_endpoint(body: DocumentRequest) -> ValidationResponse:
     return ValidationResponse(
         valid=result.valid,
         document="cnpj",
+        normalized=result.normalized,
+        message=result.message,
+    )
+
+
+@app.post("/validate/pis", response_model=ValidationResponse, tags=["validacao"])
+def validate_pis_endpoint(body: DocumentRequest) -> ValidationResponse:
+    """Valida um PIS/PASEP pelo algoritmo oficial."""
+    result = validate_pis(body.value)
+    return ValidationResponse(
+        valid=result.valid,
+        document="pis",
         normalized=result.normalized,
         message=result.message,
     )
