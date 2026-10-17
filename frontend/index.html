@@ -3,56 +3,107 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Valide CPF, CNPJ, CEP, UF e PIS/PASEP com os algoritmos oficiais. Nenhum dado é armazenado."
+    />
     <title>CEP Valida — validação de documentos brasileiros</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="container">
-      <header class="hero">
-        <p class="tag">API REST + frontend de teste</p>
-        <h1>CEP Valida</h1>
-        <p class="subtitle">
-          Valide CPF, CNPJ, CEP e UF com os algoritmos oficiais. Nenhum dado é armazenado.
-        </p>
-      </header>
+    <div class="bg-grid" aria-hidden="true"></div>
 
-      <section class="card" aria-labelledby="form-title">
-        <h2 id="form-title">Validar documento</h2>
-        <form id="validate-form">
-          <label for="document-type">Tipo de documento</label>
-          <select id="document-type" name="document-type">
-            <option value="cpf">CPF</option>
-            <option value="cnpj">CNPJ</option>
-            <option value="cep">CEP</option>
-            <option value="uf">UF</option>
-            <option value="pis">PIS/PASEP</option>
-          </select>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">CV</span>
+        <span class="brand-text">
+          CEP Valida
+          <small>validação de documentos brasileiros</small>
+        </span>
+      </a>
 
-          <label for="document-value">Valor</label>
-          <input
-            id="document-value"
-            name="document-value"
-            type="text"
-            autocomplete="off"
-            placeholder="529.982.247-25"
-            maxlength="32"
-            required
-          />
+      <div class="topbar-actions">
+        <span id="api-status" class="status-pill status-checking" role="status" aria-live="polite">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="status-label">verificando API…</span>
+        </span>
+        <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+      </div>
+    </header>
 
-          <button type="submit">Validar</button>
+    <main class="layout">
+      <section class="panel panel-form" aria-labelledby="form-title">
+        <div class="panel-head">
+          <h1 id="form-title">Validar documento</h1>
+          <p>CPF, CNPJ, CEP, UF e PIS/PASEP. Nenhum dado é armazenado.</p>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Tipo de documento">
+          <button class="tab is-active" type="button" role="tab" aria-selected="true" data-type="cpf">CPF</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-type="cnpj">CNPJ</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-type="cep">CEP</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-type="uf">UF</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-type="pis">PIS/PASEP</button>
+        </div>
+
+        <form id="validate-form" novalidate>
+          <label for="document-value" id="input-label">CPF</label>
+          <div class="input-row">
+            <input
+              id="document-value"
+              name="document-value"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              spellcheck="false"
+              maxlength="32"
+              placeholder="529.982.247-25"
+              required
+            />
+            <button type="submit" class="primary" id="submit-button">Validar</button>
+          </div>
+          <p class="field-hint" id="field-hint">11 dígitos, com ou sem pontuação.</p>
         </form>
 
-        <output id="result" class="result" aria-live="polite" hidden></output>
+        <div class="examples">
+          <span class="examples-label">Exemplos</span>
+          <div id="example-list" class="chips"></div>
+        </div>
+
+        <div class="callout">
+          <strong>Como funciona:</strong> aceita a pontuação usual. Letras e símbolos fora do
+          padrão são rejeitados, não “limpos” silenciosamente.
+        </div>
       </section>
 
-      <section class="card examples" aria-labelledby="examples-title">
-        <h2 id="examples-title">Exemplos</h2>
-        <ul id="example-list"></ul>
-        <p class="hint">
-          Os exemplos são preenchidos no formulário ao clicar. Dados de teste não são reais.
-        </p>
+      <section class="panel panel-result" aria-labelledby="result-title">
+        <div class="panel-head result-head">
+          <h2 id="result-title">Resultado</h2>
+          <button id="copy-result" class="ghost-button" type="button" hidden>Copiar JSON</button>
+        </div>
+
+        <div id="result" class="result-empty" aria-live="polite">
+          <div class="empty-icon" aria-hidden="true">⌁</div>
+          <p>Escolha o tipo, informe o documento e clique em <strong>Validar</strong>.</p>
+        </div>
       </section>
     </main>
+
+    <section class="history panel" aria-labelledby="history-title">
+      <div class="panel-head history-head">
+        <div>
+          <h2 id="history-title">Histórico local</h2>
+          <p>Fica apenas neste navegador; nada é enviado para a API.</p>
+        </div>
+        <button id="clear-history" class="ghost-button" type="button">Limpar</button>
+      </div>
+      <ul id="history-list" class="history-list"></ul>
+    </section>
+
+    <footer class="footer">
+      <span>API CEP Valida · FastAPI + Pydantic</span>
+      <span>Dados não são persistidos · ViaCEP para endereço</span>
+    </footer>
 
     <script src="app.js"></script>
   </body>
