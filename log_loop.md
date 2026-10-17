@@ -26,4 +26,16 @@ com melhoria medida e suíte verde.
 - **Decisão:** **ACEITO** — nenhum endpoint anterior mudou de comportamento e o novo
   endpoint tem cobertura válida/inválida.
 
-_(ciclos 2 e 3 preenchidos ao longo da execução)_
+### Ciclo 2 — Cache do ViaCEP
+
+- **Hipótese:** cachear respostas do ViaCEP reduz chamadas externas em consultas
+  repetidas sem alterar o contrato da API.
+- **Mudança:** cache em memória com TTL configurável em `src/services/viacep.py`,
+  `clear_cache()` para testes e três testes de comportamento (reuso, TTL zero e falha).
+- **Métrica:** consultas repetidas ao mesmo CEP: **2 chamadas HTTP antes** → **1 depois**;
+  TTL `0` volta a fazer 2 chamadas e falha de rede não é cacheada.
+- **Verificação:** `python -m pytest` → `134 passed` (131 → 134).
+- **Decisão:** **ACEITO** — redução de chamadas externas sem mudar o corpo da resposta
+  e sem cachear indisponibilidade.
+
+_(ciclo 3 preenchido ao longo da execução)_

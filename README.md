@@ -85,7 +85,7 @@ não existe, a resposta é `"valid": false` com `"source": "viacep"`.
 
 - **CPF:** 11 dígitos, rejeita sequência repetida, valida os dois dígitos verificadores; aceita `.` e `-`.
 - **CNPJ:** 14 dígitos, rejeita sequência repetida, valida os dois dígitos verificadores; aceita `.`, `/` e `-`.
-- **CEP:** 8 dígitos no padrão `NNNNN-NNN`, rejeita `00000-000`; consulta o ViaCEP com timeout de 3 s e até 3 tentativas.
+- **CEP:** 8 dígitos no padrão `NNNNN-NNN`, rejeita `00000-000`; consulta o ViaCEP com timeout de 3 s, até 3 tentativas e cache em memória de 5 minutos.
 - **UF:** uma das 27 siglas oficiais, sem diferenciar maiúsculas de minúsculas.
 - **PIS/PASEP:** 11 dígitos, rejeita sequência repetida e confere o dígito verificador pelos pesos oficiais.
 - Entradas com letras ou símbolos fora dos separadores usuais são rejeitadas, não limpas silenciosamente.
@@ -135,6 +135,7 @@ docker run --rm -p 8000:8000 api-cep-valida
 | --- | --- | --- |
 | `VIA_CEP_BASE_URL` | `https://viacep.com.br/ws` | Base da API do ViaCEP |
 | `VIA_CEP_TIMEOUT` | `3` | Timeout em segundos por tentativa |
+| `VIA_CEP_CACHE_TTL` | `300` | Tempo de vida do cache de CEP, em segundos (`0` desativa) |
 
 Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; veja `.env.example`.
 
@@ -142,8 +143,8 @@ Nenhuma chave ou segredo é necessária. O `.env` é local e não versionado; ve
 
 - Sem banco de dados, autenticação ou armazenamento de dados pessoais.
 - CORS liberado no MVP para permitir o frontend estático.
-- PIS/PASEP foi aceito no ciclo 1; cache do ViaCEP e rate limiting têm decisão
-  registrada em [`log_loop.md`](log_loop.md).
+- PIS/PASEP e cache do ViaCEP foram aceitos nos ciclos 1 e 2; o rate limiting tem
+  decisão registrada em [`log_loop.md`](log_loop.md).
 - Decisões de implementação, versões e ideias futuras estão em [`NOTES.md`](NOTES.md).
 
 ## Licença

@@ -158,3 +158,56 @@ def test_cep_resposta_invalida_do_viacep_nao_quebra(
     assert response.status_code == 200
     assert body["valid"] is True
     assert body["source"] == "local"
+
+
+def test_cache_evita_segunda_consulta_ao_viacep(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+
+    def fake_get(url: str, timeout: float) -> FakeResponse:
+        calls.append(url)
+        return FakeResponse(VIA_CEP_PAYLOAD)
+
+    monkeypatch.setattr("src.services.viacep.requests.get", fake_get)
+
+    first = client.post("/validate/cep", json={"value": "01001-000"}).json()
+    second = client.post("/validate/cep", json={"value": "01001-000"}).json()
+
+    assert len(calls) == 1
+    assert first == second
+
+
+def test_cache_respeita_ttl_zero(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VIA_CEP_CACHE_TTL", "0")
+    calls: list[str] = []
+
+    def fake_get(url: str, timeout: float) -> FakeResponse:
+        calls.append(url)
+        return FakeResponse(VIA_CEP_PAYLOAD)
+
+    monkeypatch.setattr("src.services.viacep.requests.get", fake_get)
+
+    client.post("/validate/cep", json={"value": "01001-000"})
+    client.post("/validate/cep", json={"value": "01001-000"})
+
+    assert len(calls) == 2
+
+
+def test_falha_nao_entra_no_cache(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[str] = []
+
+    def fake_get(url: str, timeout: float) -> FakeResponse:
+        calls.append(url)
+        if len(calls) <= 3:
+            raise requests.ConnectionError("ViaCEP instável")
+        return FakeResponse(VIA_CEP_PAYLOAD)
+
+    monkeypatch.setattr("src.services.viacep.requests.get", fake_get)
+
+    first = client.post("/validate/cep", json={"value": "01001-000"}).json()
+    second = client.post("/validate/cep", json={"value": "01001-000"}).json()
+
+    assert first["source"] == "local"
+    assert second["source"] == "viacep"
+    assert len(calls) == 4
